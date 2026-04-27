@@ -1,0 +1,49 @@
+# Core Data Science
+pandas
+numpy
+scikit-learn
+
+# Modeling
+xgboost
+lightgbm
+optuna
+imbalanced-learn
+
+# Explainability
+shap
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# API & Dashboard
+fastapi
+uvicorn
+streamlit
+pydantic
+
+# Configuration
+pyyaml
+python-dotenv
+
+# Data Download
+kaggle
+
+# Utilities
+tqdm
+joblib
+python-json-logger
+
+# Testing
+pytest
+pytest-cov
+
+# Development
+black
+flake8
+mypy
+
+# Production
+gunicorn
+python-multipart

@@ -1,0 +1,84 @@
+# Model Configuration
+# Defines models to train, hyperparameters, class imbalance handling
+
+# Models to Train
+models_to_train:
+  - "baseline"
+  - "xgboost"
+  - "lightgbm"
+
+# Baseline Model (Logistic Regression)
+baseline:
+  type: "logistic_regression"
+  params:
+    C: 1.0
+    penalty: "l2"
+    solver: "lbfgs"
+    max_iter: 1000
+
+# XGBoost Model
+xgboost:
+  type: "xgboost"
+  params:
+    max_depth: 6
+    learning_rate: 0.1
+    n_estimators: 100
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0
+    reg_lambda: 1
+    scale_pos_weight: null
+
+# LightGBM Model
+lightgbm:
+  type: "lightgbm"
+  params:
+    max_depth: 7
+    learning_rate: 0.1
+    n_estimators: 100
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    lambda_l1: 0
+    lambda_l2: 1
+
+# Class Imbalance Handling
+imbalance:
+  strategy: "class_weights"  # smote, class_weights, focal_loss
+  smote:
+    k_neighbors: 5
+    random_state: 42
+  class_weights:
+    method: "balanced"
+    custom_weights: null
+
+# Hyperparameter Tuning
+tuning:
+  enabled: true
+  algorithm: "optuna"
+  n_trials: 100
+  timeout: 3600
+  cv_folds: 5
+  pruner: "median"
+  sampler: "tpe"
+
+# Training Settings
+training:
+  random_seed: 42
+  batch_size: 32
+  early_stopping_rounds: 10
+  early_stopping_metric: "roc_auc"
+  verbose: true
+
+# Cross-Validation
+cross_validation:
+  enabled: true
+  n_splits: 5
+  stratified: true
+
+# Model Persistence
+persistence:
+  save_trained_models: true
+  save_best_model_only: false
+  model_dir: "models"
+  save_hyperparameters: true

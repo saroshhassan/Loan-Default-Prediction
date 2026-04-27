@@ -1,0 +1,88 @@
+# Feature Engineering Configuration
+# Defines feature schema, binning, encoding, selection strategies
+
+# Data Schema
+data:
+  target_column: "LoanApproved"
+  numerical_features:
+    - Age
+    - Income
+    - CreditScore
+    - LoanAmount
+    - YearsExperience
+  categorical_features:
+    - Gender
+    - Education
+    - City
+    - EmploymentType
+
+# Missing Value Handling
+missing_values:
+  strategy: "impute"  # impute, drop_row
+  numerical_method: "median"
+  categorical_method: "mode"
+  categorical_constant: "Unknown"
+
+# Outlier Detection
+outliers:
+  enabled: true
+  method: "iqr"  # iqr, zscore
+  iqr_multiplier: 1.5
+  zscore_threshold: 3.0
+  action: "flag"  # flag, cap, drop
+
+# Feature Engineering - Binning
+binning:
+  enabled: true
+  age:
+    enabled: true
+    bins: [0, 25, 35, 50, 100]
+    labels: ["18-25", "25-35", "35-50", "50+"]
+  income:
+    enabled: true
+    bins: [0, 35000, 75000, 1000000]
+    labels: ["low", "mid", "high"]
+  credit_score:
+    enabled: true
+    bins: [0, 600, 700, 800, 1000]
+    labels: ["poor", "fair", "good", "excellent"]
+  loan_amount:
+    enabled: true
+    bins: [0, 100000, 300000, 1000000]
+    labels: ["small", "medium", "large"]
+
+# Ratio Features
+ratios:
+  enabled: true
+  debt_to_income:
+    numerator: "LoanAmount"
+    denominator: "Income"
+    enabled: true
+  experience_to_age:
+    numerator: "YearsExperience"
+    denominator: "Age"
+    enabled: true
+
+# Encoding Strategy
+encoding:
+  categorical_strategy: "target"  # target, frequency, one_hot
+  target_encoding:
+    enabled: true
+    smoothing: 1.0
+  one_hot_encoding:
+    enabled: true
+    max_categories: 10
+
+# Scaling
+scaling:
+  enabled: true
+  method: "standard"  # standard, robust, minmax
+  features_to_scale: "numerical"
+
+# Feature Selection
+selection:
+  enabled: true
+  method: "importance"  # importance, correlation
+  importance_threshold: 0.01
+  keep_top_k: 25
+  correlation_threshold: 0.95

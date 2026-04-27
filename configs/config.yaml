@@ -1,0 +1,42 @@
+# Main Configuration File
+# Controls global system settings, paths, logging, data loading
+
+# System Paths
+paths:
+  project_root: "."
+  data_raw: "data/raw"
+  data_processed: "data/processed"
+  models: "models"
+  reports: "reports"
+  logs: "logs"
+
+# Random Seed for Reproducibility
+random_seed: 42
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
+  save_to_file: true
+  log_dir: "logs"
+
+# Data Configuration
+data:
+  dataset_name: "credit_risk_loan_default"
+  train_split: 0.70
+  val_split: 0.15
+  test_split: 0.15
+  stratify_by: "LoanApproved"
+  random_state: 42
+
+# Kaggle Integration
+kaggle:
+  enabled: true
+  dataset_name: "algozee/credit-risk-and-loan-default-analysis-dataset"
+  download_dir: "data/raw"
+  force_download: false
+
+# Execution Configuration
+execution:
+  verbose: true
+  n_jobs: -1  # -1 = all cores
