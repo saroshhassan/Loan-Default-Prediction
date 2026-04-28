@@ -84,6 +84,10 @@ class ModelTrainer:
         Returns:
             Dictionary with CV results
         """
+        # Ensure y is numpy array (not pandas Series)
+        if hasattr(y, 'values'):
+            y = y.values
+        
         if self.stratified:
             cv_splitter = StratifiedKFold(
                 n_splits=self.cv_folds,
@@ -120,7 +124,11 @@ class ModelTrainer:
         )
         
         # Get probability predictions for detailed evaluation
-        self.cv_probabilities = cross_predict_proba(base_model, X, cv_splitter)[:, 1]
+        self.cv_probabilities = cross_val_predict(
+            base_model, X, y, 
+            cv=cv_splitter,
+            method='predict_proba'
+        )[:, 1]
         
         # Get binary predictions
         self.cv_predictions = (self.cv_probabilities >= 0.5).astype(int)

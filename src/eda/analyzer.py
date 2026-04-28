@@ -226,15 +226,35 @@ class EDAAnalyzer:
             DataFrame with VIF values
         """
         from statsmodels.stats.outliers_influence import variance_inflation_factor
+        from statsmodels.tools.tools import add_constant
         
         if numerical_cols is None:
             numerical_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         
-        vif_data = pd.DataFrame()
-        vif_data["Feature"] = numerical_cols
-        vif_data["VIF"] = [variance_inflation_factor(df[numerical_cols].values, i) 
-                           for i in range(len(numerical_cols))]
-        vif_data = vif_data.sort_values('VIF', ascending=False)
+        # Clean data: remove NaN and infinite values
+        df_clean = df[numerical_cols].copy()
+        df_clean = df_clean.replace([np.inf, -np.inf], np.nan)
+        df_clean = df_clean.dropna()
+        
+        if len(df_clean) == 0:
+            logger.warning("No valid data for VIF computation after cleaning")
+            return pd.DataFrame({'Feature': numerical_cols, 'VIF': [np.nan] * len(numerical_cols)})
+        
+        vif_results = []
+        
+        # Compute VIF for each feature
+        for i, col in enumerate(numerical_cols):
+            try:
+                X = df_clean[numerical_cols].values
+                # Add constant for proper OLS regression
+                X_with_const = add_constant(X)
+                vif = variance_inflation_factor(X_with_const, i + 1)  # +1 because of constant term
+                vif_results.append({'Feature': col, 'VIF': float(vif)})
+            except Exception as e:
+                logger.warning(f"Could not compute VIF for {col}: {str(e)}")
+                vif_results.append({'Feature': col, 'VIF': np.nan})
+        
+        vif_data = pd.DataFrame(vif_results).sort_values('VIF', ascending=False)
         
         logger.info("\nVariance Inflation Factor (VIF):")
         logger.info(vif_data.to_string(index=False))
@@ -376,6 +396,11 @@ class EDAAnalyzer:
         Returns:
             Dictionary with all analysis results
         """
+        # Clean data first
+        df = df.copy()
+        df = df.replace([np.inf, -np.inf], np.nan)
+        df = df.dropna()
+        
         if numerical_cols is None:
             numerical_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             numerical_cols = [c for c in numerical_cols if c != target_col]

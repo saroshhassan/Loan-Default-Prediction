@@ -23,14 +23,13 @@ class ModelFactory:
         Returns:
             LogisticRegression model
         """
+        # For sklearn 1.8+ compatibility, don't specify deprecated penalty/n_jobs
         model = LogisticRegression(
             C=params.get('C', 1.0),
-            penalty=params.get('penalty', 'l2'),
             solver=params.get('solver', 'lbfgs'),
             max_iter=params.get('max_iter', 1000),
             random_state=params.get('random_state', 42),
-            class_weight=params.get('class_weight', 'balanced'),
-            n_jobs=-1
+            class_weight=params.get('class_weight', 'balanced')
         )
         logger.info("Created LogisticRegression baseline model")
         return model

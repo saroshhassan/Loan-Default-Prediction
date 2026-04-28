@@ -53,7 +53,7 @@ def main():
     
     # Exploratory Data Analysis
     logger.info("\n3. Performing Exploratory Data Analysis...")
-    eda_analyzer = EDAAnalyzer(output_dir="reports")
+    #eda_analyzer = EDAAnalyzer(output_dir="reports")
     
     numerical_cols = ['Age', 'Income', 'CreditScore', 'LoanAmount', 'YearsExperience']
     categorical_cols = ['Gender', 'Education', 'City', 'EmploymentType']
