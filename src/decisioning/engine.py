@@ -217,58 +217,81 @@ class DecisionEngine:
             loan_amounts: Loan amounts (optional)
             save: Whether to save plots
         """
-        # Sweep approve threshold with fixed reject threshold
-        approve_thresholds = np.arange(0.05, 0.5, 0.02)
-        reject_threshold = 0.70
+        # Get percentiles of actual predictions to understand their distribution
+        p10 = np.percentile(y_pred_proba, 10)
+        p25 = np.percentile(y_pred_proba, 25)
+        p50 = np.percentile(y_pred_proba, 50)
+        p75 = np.percentile(y_pred_proba, 75)
+        p90 = np.percentile(y_pred_proba, 90)
+        
+        logger.info(f"\nPrediction distribution percentiles:")
+        logger.info(f"  10th: {p10:.4f}, 25th: {p25:.4f}, 50th: {p50:.4f}, 75th: {p75:.4f}, 90th: {p90:.4f}")
+        
+        # Create thresholds that span from very strict (low percentile) to lenient (high percentile)
+        # This ensures we capture the range of actual predictions
+        approve_thresholds = np.linspace(np.min(y_pred_proba), p75, 25)
         
         results = []
         for approve_th in approve_thresholds:
-            decisions = self.apply_decision_policy(y_pred_proba, approve_th, reject_threshold)
+            # Set reject threshold higher than approve threshold
+            reject_th = max(p90, approve_th + (p75 - p10) * 0.1)
+            
+            decisions = self.apply_decision_policy(y_pred_proba, approve_th, reject_th)
             metrics = self.simulate_business_impact(decisions, y_true, y_pred_proba, loan_amounts)
             metrics['approve_threshold'] = approve_th
+            metrics['reject_threshold'] = reject_th
             results.append(metrics)
         
         results_df = pd.DataFrame(results)
+        
+        logger.info(f"\nThreshold sweep results:")
+        logger.info(f"  Approval rate range: {results_df['approval_rate'].min():.2%} to {results_df['approval_rate'].max():.2%}")
+        logger.info(f"  Default rate range: {results_df['default_rate_in_approved'].min():.2%} to {results_df['default_rate_in_approved'].max():.2%}")
+        logger.info(f"  False negative rate range: {results_df['false_negative_rate'].min():.2%} to {results_df['false_negative_rate'].max():.2%}")
         
         # Plot tradeoffs
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
         
         # Approval rate vs Default rate
         axes[0, 0].plot(results_df['approve_threshold'], results_df['approval_rate'], 
-                       marker='o', label='Approval Rate', linewidth=2, markersize=6)
-        axes[0, 0].set_xlabel('Approve Threshold')
-        axes[0, 0].set_ylabel('Approval Rate')
-        axes[0, 0].set_title('Approval Rate vs Threshold', fontweight='bold')
-        axes[0, 0].grid(alpha=0.3)
-        axes[0, 0].legend()
+                       marker='o', label='Approval Rate', linewidth=2.5, markersize=7, color='#3498db')
+        axes[0, 0].set_xlabel('Approve Threshold (Risk Score)', fontsize=11, fontweight='bold')
+        axes[0, 0].set_ylabel('Approval Rate', fontsize=11, fontweight='bold')
+        axes[0, 0].set_title('Approval Rate vs Threshold', fontweight='bold', fontsize=12)
+        axes[0, 0].grid(alpha=0.3, linestyle='--')
+        axes[0, 0].legend(fontsize=10, loc='best')
+        axes[0, 0].yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
         
         # Default rate in approved
         axes[0, 1].plot(results_df['approve_threshold'], results_df['default_rate_in_approved'],
-                       marker='s', label='Default Rate', color='red', linewidth=2, markersize=6)
-        axes[0, 1].set_xlabel('Approve Threshold')
-        axes[0, 1].set_ylabel('Default Rate in Approved Portfolio')
-        axes[0, 1].set_title('Portfolio Risk vs Threshold', fontweight='bold')
-        axes[0, 1].grid(alpha=0.3)
-        axes[0, 1].legend()
+                       marker='s', label='Default Rate', color='#e74c3c', linewidth=2.5, markersize=7)
+        axes[0, 1].set_xlabel('Approve Threshold (Risk Score)', fontsize=11, fontweight='bold')
+        axes[0, 1].set_ylabel('Default Rate in Approved Portfolio', fontsize=11, fontweight='bold')
+        axes[0, 1].set_title('Portfolio Risk vs Threshold', fontweight='bold', fontsize=12)
+        axes[0, 1].grid(alpha=0.3, linestyle='--')
+        axes[0, 1].legend(fontsize=10, loc='best')
+        axes[0, 1].yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
         
-        # False Negative Rate
+        # False Negative Rate (Missed Defaults)
         axes[1, 0].plot(results_df['approve_threshold'], results_df['false_negative_rate'],
-                       marker='^', label='False Negative Rate', color='orange', linewidth=2, markersize=6)
-        axes[1, 0].set_xlabel('Approve Threshold')
-        axes[1, 0].set_ylabel('False Negative Rate')
-        axes[1, 0].set_title('Missed Defaults vs Threshold', fontweight='bold')
-        axes[1, 0].grid(alpha=0.3)
-        axes[1, 0].legend()
+                       marker='^', label='False Negative Rate', color='#f39c12', linewidth=2.5, markersize=7)
+        axes[1, 0].set_xlabel('Approve Threshold (Risk Score)', fontsize=11, fontweight='bold')
+        axes[1, 0].set_ylabel('False Negative Rate', fontsize=11, fontweight='bold')
+        axes[1, 0].set_title('Missed Defaults vs Threshold', fontweight='bold', fontsize=12)
+        axes[1, 0].grid(alpha=0.3, linestyle='--')
+        axes[1, 0].legend(fontsize=10, loc='best')
+        axes[1, 0].yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
         
         # Approval count
         axes[1, 1].plot(results_df['approve_threshold'], results_df['approved_count'],
-                       marker='d', label='Approved Count', color='green', linewidth=2, markersize=6)
-        axes[1, 1].set_xlabel('Approve Threshold')
-        axes[1, 1].set_ylabel('Number of Approvals')
-        axes[1, 1].set_title('Approval Volume vs Threshold', fontweight='bold')
-        axes[1, 1].grid(alpha=0.3)
-        axes[1, 1].legend()
+                       marker='d', label='Approved Count', color='#2ecc71', linewidth=2.5, markersize=7)
+        axes[1, 1].set_xlabel('Approve Threshold (Risk Score)', fontsize=11, fontweight='bold')
+        axes[1, 1].set_ylabel('Number of Approvals', fontsize=11, fontweight='bold')
+        axes[1, 1].set_title('Approval Volume vs Threshold', fontweight='bold', fontsize=12)
+        axes[1, 1].grid(alpha=0.3, linestyle='--')
+        axes[1, 1].legend(fontsize=10, loc='best')
         
+        plt.suptitle('Decision Threshold Tradeoff Analysis', fontsize=14, fontweight='bold', y=1.00)
         plt.tight_layout()
         
         if save:

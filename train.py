@@ -214,6 +214,7 @@ def save_training_summary(
     train_test_results: dict,
     best_model: str,
     importance_df,
+    decision_report: dict = None,
     output_dir: str = "reports"
 ) -> None:
     """
@@ -224,6 +225,7 @@ def save_training_summary(
         train_test_results: Train/test evaluation results
         best_model: Best model name
         importance_df: Feature importance dataframe
+        decision_report: Decision engine report (optional)
         output_dir: Output directory
     """
     from pathlib import Path

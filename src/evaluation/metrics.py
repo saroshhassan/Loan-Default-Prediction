@@ -56,7 +56,10 @@ class ModelEvaluator:
         npv = tn / (tn + fn) if (tn + fn) > 0 else 0  # Negative Predictive Value
         
         # Precision-Recall curve
-        pr_auc = auc(*precision_recall_curve(y_true, y_pred_proba)[:2])
+        precision, recall, _ = precision_recall_curve(y_true, y_pred_proba)
+        # Sort by recall to ensure monotonic x-values for AUC calculation
+        sorted_indices = np.argsort(recall)
+        pr_auc = auc(recall[sorted_indices], precision[sorted_indices])
         
         metrics = {
             # Core metrics
@@ -143,23 +146,32 @@ class ModelEvaluator:
         print(f"Evaluation Metrics: {model_name}")
         print(f"{'='*60}")
         
+        # Helper function to convert numpy arrays to scalars
+        def to_scalar(val):
+            if isinstance(val, np.ndarray):
+                # If it's an array with multiple elements, take the mean
+                if val.size > 1:
+                    return float(np.mean(val))
+                return float(val.item())
+            return float(val)
+        
         print(f"\nProbability Metrics:")
-        print(f"  ROC-AUC:           {metrics['roc_auc']:.4f}")
-        print(f"  PR-AUC:            {metrics['pr_auc']:.4f}")
-        print(f"  Log Loss:          {metrics['log_loss']:.4f}")
+        print(f"  ROC-AUC:           {to_scalar(metrics['roc_auc']):.4f}")
+        print(f"  PR-AUC:            {to_scalar(metrics['pr_auc']):.4f}")
+        print(f"  Log Loss:          {to_scalar(metrics['log_loss']):.4f}")
         
         print(f"\nClassification Metrics (threshold={metrics['threshold']}):")
-        print(f"  Accuracy:          {metrics['accuracy']:.4f}")
-        print(f"  Precision:         {metrics['precision']:.4f}")
-        print(f"  Recall (Sensitivity): {metrics['recall']:.4f}")
-        print(f"  Specificity:       {metrics['specificity']:.4f}")
-        print(f"  F1-Score:          {metrics['f1']:.4f}")
-        print(f"  MCC:               {metrics['mcc']:.4f}")
-        print(f"  NPV:               {metrics['npv']:.4f}")
+        print(f"  Accuracy:          {to_scalar(metrics['accuracy']):.4f}")
+        print(f"  Precision:         {to_scalar(metrics['precision']):.4f}")
+        print(f"  Recall (Sensitivity): {to_scalar(metrics['recall']):.4f}")
+        print(f"  Specificity:       {to_scalar(metrics['specificity']):.4f}")
+        print(f"  F1-Score:          {to_scalar(metrics['f1']):.4f}")
+        print(f"  MCC:               {to_scalar(metrics['mcc']):.4f}")
+        print(f"  NPV:               {to_scalar(metrics['npv']):.4f}")
         
         print(f"\nConfusion Matrix:")
-        print(f"  TP: {metrics['tp']:>5}  |  FP: {metrics['fp']:>5}")
-        print(f"  FN: {metrics['fn']:>5}  |  TN: {metrics['tn']:>5}")
+        print(f"  TP: {int(metrics['tp']):>5}  |  FP: {int(metrics['fp']):>5}")
+        print(f"  FN: {int(metrics['fn']):>5}  |  TN: {int(metrics['tn']):>5}")
         print(f"{'='*60}\n")
 
 
@@ -182,13 +194,22 @@ class CrossValidationEvaluator:
         
         for metric in metrics_names:
             values = [scores[metric] for scores in cv_scores_list]
-            aggregated[metric] = {
-                'mean': np.mean(values),
-                'std': np.std(values),
-                'min': np.min(values),
-                'max': np.max(values),
-                'folds': values
-            }
+            
+            # Skip aggregation for non-numeric metrics
+            try:
+                values_numeric = np.array(values, dtype=float)
+                aggregated[metric] = {
+                    'mean': np.mean(values_numeric),
+                    'std': np.std(values_numeric),
+                    'min': np.min(values_numeric),
+                    'max': np.max(values_numeric),
+                    'folds': values
+                }
+            except (ValueError, TypeError):
+                # For non-numeric metrics, just store the values
+                aggregated[metric] = {
+                    'folds': values
+                }
         
         return aggregated
     
@@ -209,7 +230,7 @@ class CrossValidationEvaluator:
         print("-" * 70)
         
         for metric, stats in aggregated_scores.items():
-            if metric != 'threshold':
+            if metric != 'threshold' and 'mean' in stats:
                 print(f"{metric:<20} {stats['mean']:>11.4f} {stats['std']:>11.4f} "
                       f"{stats['min']:>11.4f} {stats['max']:>11.4f}")
         
