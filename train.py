@@ -53,7 +53,7 @@ def main():
     
     # Exploratory Data Analysis
     logger.info("\n3. Performing Exploratory Data Analysis...")
-    #eda_analyzer = EDAAnalyzer(output_dir="reports")
+    """eda_analyzer = EDAAnalyzer(output_dir="reports")
     
     numerical_cols = ['Age', 'Income', 'CreditScore', 'LoanAmount', 'YearsExperience']
     categorical_cols = ['Gender', 'Education', 'City', 'EmploymentType']
@@ -70,7 +70,7 @@ def main():
     print(f"  - Feature signal strength (Information Value)")
     print(eda_report['information_value'].head(3).to_string())
     print(f"\n  - Feature importance (Univariate ROC-AUC)")
-    print(eda_report['roc_auc_per_feature'].head(3).to_string())
+    print(eda_report['roc_auc_per_feature'].head(3).to_string())"""
     
     # Split data
     logger.info("\n3. Splitting data into train/test (80/20)...")
