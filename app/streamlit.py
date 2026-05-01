@@ -71,12 +71,16 @@ def load_models_and_config():
         project_root = Path(__file__).parent.parent
         
         # Load config
-        config_path = project_root / "configs" / "config.yaml"
+        config_path = f"{project_root}/configs/config.yaml"
+        config_path=Path(config_path)
+        
         config = load_config(str(config_path))
         logger.info(f"✓ Config loaded from {config_path}")
         
         # Load preprocessor
-        preprocessor_path = f"{project_root} / models / preprocessor.pkl"
+        preprocessor_path = f"{project_root}/models/preprocessor.pkl"
+        preprocessor_path=Path(preprocessor_path)
+        
         if preprocessor_path.exists():
             preprocessor = joblib.load(preprocessor_path)
             logger.info(f"✓ Preprocessor loaded")
@@ -85,21 +89,27 @@ def load_models_and_config():
             preprocessor = None
         
         # Load model
-        model_path = f"{project_root} / models / baseline_model.pkl"
+        model_path = f"{project_root}/models/baseline_model.pkl"
+        model_path=Path(model_path)
+        
         if model_path.exists():
             model = joblib.load(model_path)
             logger.info(f"✓ Model loaded")
         else:
             logger.error(f"✗ Model not found at {model_path}")
             # List available files
-            models_dir = project_root / "models"
+            models_dir = f"{project_root}/models"
+            models_dir=Path(models_dir)
+            
             if models_dir.exists():
                 pkl_files = list(models_dir.glob("*.pkl"))
                 logger.error(f"Available files: {[f.name for f in pkl_files]}")
             model = None
         
         # Initialize decision engine
-        reports_dir = project_root / "reports"
+        reports_dir = f"{project_root}/reports"
+        reports_dir=Path(reports_dir)
+        
         decision_engine = DecisionEngine(output_dir=str(reports_dir))
         
         return {
