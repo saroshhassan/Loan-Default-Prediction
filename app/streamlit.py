@@ -76,7 +76,7 @@ def load_models_and_config():
         logger.info(f"✓ Config loaded from {config_path}")
         
         # Load preprocessor
-        preprocessor_path = project_root / "models" / "preprocessor.pkl"
+        preprocessor_path = f"{project_root} / models / preprocessor.pkl"
         if preprocessor_path.exists():
             preprocessor = joblib.load(preprocessor_path)
             logger.info(f"✓ Preprocessor loaded")
@@ -85,7 +85,7 @@ def load_models_and_config():
             preprocessor = None
         
         # Load model
-        model_path = project_root / "models" / "baseline_model.pkl"
+        model_path = f"{project_root} / models / baseline_model.pkl"
         if model_path.exists():
             model = joblib.load(model_path)
             logger.info(f"✓ Model loaded")
