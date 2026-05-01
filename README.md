@@ -1,6 +1,6 @@
 # Risk Assessment Manager - Loan Default Prediction System
 
-A production-grade machine learning system that predicts loan approval risk and supports lending decisions. This system bridges prediction analytics with actionable business decisions through calibrated risk scoring and automated decision policies.
+A production-grade demo machine learning system that predicts loan approval risk and supports lending decisions. This system bridges prediction analytics with actionable business decisions through calibrated risk scoring and automated decision policies.
 
 ## Features
 
