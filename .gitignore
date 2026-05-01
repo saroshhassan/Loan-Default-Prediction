@@ -39,7 +39,7 @@ wheels/
 reports/
 data/raw/
 notebooks/
-*.pkl
 *.joblib
 logs/
 .pytest_cache/
+eda_output/
