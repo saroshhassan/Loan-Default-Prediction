@@ -85,7 +85,7 @@ def load_models_and_config():
             preprocessor = None
         
         # Load model
-        model_path = project_root / "models" / "xgboost_model.pkl"
+        model_path = project_root / "models" / "baseline_model.pkl"
         if model_path.exists():
             model = joblib.load(model_path)
             logger.info(f"✓ Model loaded")
